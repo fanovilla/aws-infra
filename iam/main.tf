@@ -65,6 +65,11 @@ resource "aws_iam_role" "AdhocLambdaRole" {
           Effect   = "Allow"
           Resource = "*"
         },
+        {
+          Action   = ["ec2:Describe*"]
+          Effect   = "Allow"
+          Resource = "*"
+        },
       ]
     })
   }
