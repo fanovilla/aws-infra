@@ -20,24 +20,46 @@ for raw_role in raw_roles:
     policies = []
 
     for role_policy in raw_role["RolePolicyList"]:
-        statements = []
+        allow_actions = []
+        deny_actions = []
         for statement in role_policy["PolicyDocument"]["Statement"]:
-            statements.append(f"{statement['Effect']}:[{','.join(statement['Action'])}]")
-        policies.append({'source': f"Inline:{role_policy['PolicyName']}", 'actions': statements})
+            effect = statement['Effect']
+            if effect == 'Allow':
+                allow_actions.extend(statement['Action'])
+            elif effect == 'Deny':
+                deny_actions.extend(statement['Action'])
+            else:
+                raise Exception("Unrecognized effect")
+        if deny_actions:
+            policies.append({'source': f"Inline:{role_policy['PolicyName']}", 'allow_actions': allow_actions,
+                             'deny_actions': deny_actions})
+        else:
+            policies.append({'source': f"Inline:{role_policy['PolicyName']}", 'allow_actions': allow_actions})
 
     for managed_policy in raw_role["AttachedManagedPolicies"]:
         statements = []
         local_match = next((item for item in raw_local_policies if item["Arn"] == managed_policy["PolicyArn"]), None)
         if local_match is None:
-            policies.append({'source': f"AWS:{managed_policy['PolicyName']}",
-                             'actions': ["See https://console.aws.amazon.com/iam/home?#/policies"]})
+            policies.append({'source': f"AWSManaged:{managed_policy['PolicyName']}",
+                             'allow_actions': ["See https://console.aws.amazon.com/iam/home?#/policies"]})
         else:
             matched_policy = next((item for item in local_match["PolicyVersionList"] if item["IsDefaultVersion"]), None)
-            statements = []
+            allow_actions = []
+            deny_actions = []
             for statement in matched_policy["Document"]["Statement"]:
-                statements.append(f"{statement['Effect']}:[{','.join(statement['Action'])}]")
-            policies.append({'source': f"LocalManaged:{local_match['PolicyName']}", 'actions': statements})
+                effect = statement['Effect']
+                if effect == 'Allow':
+                    allow_actions.extend(statement['Action'])
+                elif effect == 'Deny':
+                    deny_actions.extend(statement['Action'])
+                else:
+                    raise Exception("Unrecognized effect")
+            if deny_actions:
+                policies.append({'source': f"LocalManaged:{local_match['PolicyName']}", 'allow_actions': allow_actions,
+                                 'deny_actions': deny_actions})
+            else:
+                policies.append({'source': f"LocalManaged:{local_match['PolicyName']}", 'allow_actions': allow_actions})
 
     roles.append({'name': raw_role["RoleName"], 'action_sets': policies})
 
-print(json.dumps(roles, indent=2, default=str))
+print(json.dumps(roles, indent=2, default=str, ))
