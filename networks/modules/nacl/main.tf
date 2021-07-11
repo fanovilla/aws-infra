@@ -1,97 +1,101 @@
-data "aws_vpc" "this" {
-  tags = {
-    Name = var.vpc_name
-  }
-}
-
-data "aws_subnet_ids" "this" {
-  vpc_id = data.aws_vpc.this.id
-}
-
-data "aws_subnet" "this" {
-  for_each = data.aws_subnet_ids.this.ids
-  id       = each.value
-}
-
 locals {
-  aws_subnets = data.aws_subnet.this
+  subnet_group = var.subnet_group
+  vpc_id       = var.vpc_id
+  subnet_ids   = var.subnet_ids
+  ruleset      = var.ruleset
+  ruleset_refs = var.ruleset_refs
 
-  subnet_group_to_ids_map = {
-    for s in data.aws_subnet.this : s.tags.SubnetGroup => s.id...
-  }
-
-  subnet_group_to_cidrs_map = {
-    for s in data.aws_subnet.this : s.tags.SubnetGroup => s.cidr_block...
-  }
-
-  ruleset_refs_lookup = merge(local.subnet_group_to_cidrs_map, var.rulesets_refs)
-
-  source_egress_rules = flatten([
-    for subnet_group in keys(local.subnet_group_to_ids_map) : [
-      for rule in var.rulesets : [
-        for index, cidr in lookup(local.ruleset_refs_lookup, rule.target) : {
-          id           = "${rule.source}-${rule.basenum}-${cidr}"
-          rulenum      = rule.basenum + (index * 10)
-          subnet_group = subnet_group
-          cidr         = cidr
-          port         = rule.port
-        }
-      ] if rule.source == subnet_group
-    ]
+  # outbound rules for subnet groups in source column in ruleset
+  source_outbound_rules = flatten([
+    for rule_index, rule in var.ruleset : [
+      for cidr_index, cidr in lookup(local.ruleset_refs, rule.target) : {
+        id           = "${rule.source}-${rule.target}-${rule.port}-${cidr}"
+        rulenum      = 1000 + (rule_index * 10) + (cidr_index * 1)
+        subnet_group = local.subnet_group
+        cidr         = cidr
+        from_port    = rule.port
+        to_port      = rule.port
+      }
+    ] if rule.source == local.subnet_group
   ])
 
-  source_ingress_rules = flatten([
-    for subnet_group in keys(local.subnet_group_to_ids_map) : [
-      for rule in var.rulesets : [
-        for index, cidr in lookup(local.ruleset_refs_lookup, rule.target) : {
-          id           = "${rule.source}-${rule.basenum}-${cidr}"
-          rulenum      = rule.basenum + (index * 10)
-          subnet_group = subnet_group
-          cidr         = cidr
-          port         = rule.port
-        }
-      ] if rule.source == subnet_group
-    ]
+  # inbound rules for subnet groups in source column in ruleset
+  source_inbound_rules = flatten([
+    for rule_index, rule in var.ruleset : [
+      for cidr_index, cidr in lookup(local.ruleset_refs, rule.target) : {
+        id           = "${rule.source}-${rule.target}-${rule.port}-${cidr}"
+        rulenum      = 2000 + (rule_index * 10) + (cidr_index * 1)
+        subnet_group = local.subnet_group
+        cidr         = cidr
+        from_port    = 1024
+        to_port      = 65535
+      }
+    ] if rule.source == local.subnet_group
   ])
 
+  # inbound rules for subnet groups in target column in ruleset
+  target_inbound_rules = flatten([
+    for rule_index, rule in var.ruleset : [
+      for cidr_index, cidr in lookup(local.ruleset_refs, rule.source) : {
+        id           = "${rule.source}-${rule.target}-${rule.port}-${cidr}"
+        rulenum      = 3000 + (rule_index * 10) + (cidr_index * 1)
+        subnet_group = local.subnet_group
+        cidr         = cidr
+        from_port    = rule.port
+        to_port      = rule.port
+      }
+    ] if rule.target == local.subnet_group
+  ])
+
+  # outbound rules for subnet groups in target column in ruleset
+  target_outbound_rules = flatten([
+    for rule_index, rule in var.ruleset : [
+      for cidr_index, cidr in lookup(local.ruleset_refs, rule.source) : {
+        id           = "${rule.source}-${rule.target}-${rule.port}-${cidr}"
+        rulenum      = 4000 + (rule_index * 10) + (cidr_index * 1)
+        subnet_group = local.subnet_group
+        cidr         = cidr
+        from_port    = 1024
+        to_port      = 65535
+      }
+    ] if rule.target == local.subnet_group
+  ])
+
+  outbound_rules = { for rule in concat(local.source_outbound_rules, local.target_outbound_rules) : rule.id => rule }
+  inbound_rules  = { for rule in concat(local.source_inbound_rules, local.target_inbound_rules) : rule.id => rule }
 }
 
 resource "aws_network_acl" "this" {
-  for_each   = local.subnet_group_to_ids_map
-  vpc_id     = data.aws_vpc.this.id
-  subnet_ids = toset(each.value)
+  vpc_id     = local.vpc_id
+  subnet_ids = local.subnet_ids
 
   tags = {
-    Name = each.key
+    Name = local.subnet_group
   }
 }
 
-resource "aws_network_acl_rule" "source_egress" {
-  for_each = {
-    for rule in local.source_egress_rules : rule.id => rule
-  }
+resource "aws_network_acl_rule" "outbound" {
+  for_each = local.outbound_rules
 
-  network_acl_id = aws_network_acl.this[each.value.subnet_group].id
+  network_acl_id = aws_network_acl.this.id
   rule_number    = each.value.rulenum
   egress         = true
-  protocol       = "tcp"
+  protocol       = each.value.from_port == 0 ? "all" : "tcp"
   rule_action    = "allow"
   cidr_block     = each.value.cidr
-  from_port      = each.value.port
-  to_port        = each.value.port
+  from_port      = each.value.from_port
+  to_port        = each.value.to_port
 }
 
-resource "aws_network_acl_rule" "source_ingress" {
-  for_each = {
-    for rule in local.source_ingress_rules : rule.id => rule
-  }
+resource "aws_network_acl_rule" "inbound" {
+  for_each = local.inbound_rules
 
-  network_acl_id = aws_network_acl.this[each.value.subnet_group].id
+  network_acl_id = aws_network_acl.this.id
   rule_number    = each.value.rulenum
   egress         = false
-  protocol       = "tcp"
+  protocol       = each.value.from_port == 0 ? "all" : "tcp"
   rule_action    = "allow"
   cidr_block     = each.value.cidr
-  from_port      = 1024
-  to_port        = 65535
+  from_port      = each.value.from_port
+  to_port        = each.value.to_port
 }

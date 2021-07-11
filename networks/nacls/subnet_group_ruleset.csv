@@ -1,0 +1,13 @@
+source,target,port
+app_public,app_private,443
+app_public,_aws_s3,443
+app_private,app_persistence,3306
+app_private,app_persistence,22
+app_private,_onprem_ldap,636
+app_private,_aws_s3,443
+mgmt_public,mgmt_private,443
+mgmt_private,_vpc_mgmt,0
+mgmt_private,_vpc_app,0
+mgmt_private,_onprem_ldap,636
+_universe,app_public,443
+_universe,mgmt_public,443

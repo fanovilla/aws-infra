@@ -1,19 +1,28 @@
-variable "vpc_name" {
-  description = "Name for the VPC"
+variable "subnet_group" {
+  description = "Name for the subnet group to process"
   type        = string
 }
 
-variable "rulesets" {
+variable "vpc_id" {
+  description = "VPC where to create the NACL"
+  type        = string
+}
+
+variable "subnet_ids" {
+  description = "Subnets attached to the NACL"
+  type        = list(string)
+}
+
+variable "ruleset" {
   description = "List of rules that are outbound from subnet groups"
   type = list(object({
-    basenum = string
-    source  = string
-    target  = string
-    port    = string
+    source = string
+    target = string
+    port   = number
   }))
 }
 
-variable "rulesets_refs" {
+variable "ruleset_refs" {
   description = "Map where a key is a reference in the ruleset and the value is the list of CIDRs for the reference"
   type        = map(list(string))
 }

@@ -1,3 +1,4 @@
+# create the VPC
 resource "aws_vpc" "this" {
   cidr_block = var.cidr
 
@@ -6,6 +7,7 @@ resource "aws_vpc" "this" {
   }
 }
 
+# associate secondary CIDRs, if any
 resource "aws_vpc_ipv4_cidr_block_association" "this" {
   for_each   = toset(var.secondary_cidrs)
   vpc_id     = aws_vpc.this.id
@@ -25,6 +27,7 @@ locals {
   ])
 }
 
+# create the subnets, setting the SubnetGroup tag
 resource "aws_subnet" "this" {
   for_each = {
     for subnet in local.subnets : "${var.vpc_name}_${subnet.subnet_group_key}_${subnet.index}" => subnet
