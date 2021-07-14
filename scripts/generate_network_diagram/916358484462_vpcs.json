@@ -1,0 +1,66 @@
+{
+    "Vpcs": [
+        {
+            "CidrBlock": "10.0.0.0/16",
+            "DhcpOptionsId": "dopt-504f4737",
+            "State": "available",
+            "VpcId": "vpc-0d62f8ced5383b24b",
+            "OwnerId": "916358484462",
+            "InstanceTenancy": "default",
+            "CidrBlockAssociationSet": [
+                {
+                    "AssociationId": "vpc-cidr-assoc-0659f81981ab5bdcf",
+                    "CidrBlock": "10.0.0.0/16",
+                    "CidrBlockState": {
+                        "State": "associated"
+                    }
+                },
+                {
+                    "AssociationId": "vpc-cidr-assoc-0e82dde53f075f1ff",
+                    "CidrBlock": "10.1.0.0/16",
+                    "CidrBlockState": {
+                        "State": "associated"
+                    }
+                },
+                {
+                    "AssociationId": "vpc-cidr-assoc-0bd8cf32f8068d67d",
+                    "CidrBlock": "10.2.0.0/16",
+                    "CidrBlockState": {
+                        "State": "associated"
+                    }
+                }
+            ],
+            "IsDefault": false,
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "app"
+                }
+            ]
+        },
+        {
+            "CidrBlock": "10.8.0.0/16",
+            "DhcpOptionsId": "dopt-504f4737",
+            "State": "available",
+            "VpcId": "vpc-06ca9163760497ab3",
+            "OwnerId": "916358484462",
+            "InstanceTenancy": "default",
+            "CidrBlockAssociationSet": [
+                {
+                    "AssociationId": "vpc-cidr-assoc-0295cf433d18b2db4",
+                    "CidrBlock": "10.8.0.0/16",
+                    "CidrBlockState": {
+                        "State": "associated"
+                    }
+                }
+            ],
+            "IsDefault": false,
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "mgmt"
+                }
+            ]
+        }
+    ]
+}

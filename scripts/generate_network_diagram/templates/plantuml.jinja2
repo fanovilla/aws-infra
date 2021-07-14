@@ -1,0 +1,26 @@
+@startuml
+{% for vpc in jinja_vpcs %}
+card {{ vpc[0] }} {
+    {% for subnet in vpc[1] %}storage {{ subnet }}
+    {% endfor %}
+}{% endfor %}
+
+{% for ref in jinja_extra_cidrs %}
+cloud {{ ref[0] }}
+note bottom: {{ ref[1] }}
+{% endfor %}
+
+{% for ref in jinja_vpc_cidrs %}
+note bottom of {{ ref[0] }}
+{{ ref[1] }}
+end note{% endfor %}
+
+{% for ref in jinja_subnet_group_cidrs %}
+note bottom of {{ ref[0] }}
+{{ ref[1] }}
+end note{% endfor %}
+
+{% for conn in connections %}
+{{ conn[0] }} --> {{ conn[1] }} : {{ conn[2] }}{% endfor %}
+
+@enduml
