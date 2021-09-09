@@ -43,7 +43,7 @@ locals {
 
 module "nacl" {
   for_each = toset(local.subnet_groups_to_process)
-  source   = "../modules/nacl"
+  source   = "./modules/nacl"
 
   subnet_group = each.value
   vpc_id       = lookup(local.subnet_group_to_vpc_map, each.value)

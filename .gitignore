@@ -30,3 +30,6 @@ override.tf.json
 
 # IDE
 .idea
+
+# terraform-unit-testing
+.tut

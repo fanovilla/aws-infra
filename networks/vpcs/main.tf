@@ -11,7 +11,7 @@ locals {
 
 # create app vpc and subnets
 module "app_vpc" {
-  source = "../modules/vpc"
+  source = "./modules/vpc"
 
   vpc_name        = "app"
   cidr            = local.app_vpc_cidr
@@ -33,7 +33,7 @@ module "app_vpc" {
 
 # create mgmt vpc and subnets
 module "mgmt_vpc" {
-  source = "../modules/vpc"
+  source = "./modules/vpc"
 
   vpc_name = "mgmt"
   cidr     = local.mgmt_vpc_cidr
