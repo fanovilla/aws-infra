@@ -6,7 +6,7 @@
 
 https://docs.aws.amazon.com/controltower/latest/userguide/getting-started-with-control-tower.html
 
-* create a new account - used a [task-specific gmail address](https://support.google.com/a/users/answer/9308648?hl=en), e.g. `me+aws01-audit@gmail.com`
+* create a new account - used a [task-specific gmail address](https://support.google.com/a/users/answer/9308648?hl=en), e.g. `me+aws01@gmail.com`
 * setup MFA on root user - https://docs.aws.amazon.com/IAM/latest/UserGuide/id_root-user.html#id_root-user_manage_mfa
 * create Administrator IAM user - https://docs.aws.amazon.com/controltower/latest/userguide/setting-up.html
 
@@ -101,3 +101,45 @@ Using root user
 * Enable cost explorer
 * Setup monthly $10 budget
 * Setup alert at 80% forecasted, email to root email address
+
+
+# Baseline Resources Created
+
+## OUs
+
+* Root
+* Security
+* Sandbox
+
+## Accounts
+
+| Account name | Account email                  | OU       |
+| ---          | ---                            | ---      |
+| Audit        | me+aws10-audit@gmail.com       | Security |
+| me+aws10     | me+aws10@gmail.com             | Root     |
+| Log Archive  | me+aws10-log-archive@gmail.com | Security |
+
+## Guardrails
+
+| Name                                                                                                       | Guidance  | Category            | Behavior   | Status      |
+| ---                                                                                                        | ---       | ---                 | ---        | ---         |
+| Disallow deletion of log archive                                                                           | Mandatory | Audit logs          | Prevention | Enforced    |
+| Disallow Changes to Encryption Configuration for Amazon S3 Buckets                                         | Elective  | Audit logs          | Prevention | Not enabled |
+| Disallow Changes to Logging Configuration for Amazon S3 Buckets                                            | Elective  | Audit logs          | Prevention | Not enabled |
+| Disallow Changes to Bucket Policy for Amazon S3 Buckets                                                    | Elective  | Monitoring          | Prevention | Not enabled |
+| Detect public read access setting for log archive                                                          | Mandatory | Audit logs          | Detection  | Clear       |
+| Detect public write access setting for log archive                                                         | Mandatory | Audit logs          | Detection  | Clear       |
+| Disallow Changes to Lifecycle Configuration for Amazon S3 Buckets                                          | Elective  | Audit logs          | Prevention | Not enabled |
+| Disallow configuration changes to CloudTrail                                                               | Mandatory | Audit logs          | Prevention | Enforced    |
+| Integrate CloudTrail events with CloudWatch Logs                                                           | Mandatory | Monitoring          | Prevention | Enforced    |
+| Enable CloudTrail in all available regions                                                                 | Mandatory | Audit logs          | Prevention | Enforced    |
+| Enable integrity validation for CloudTrail log file                                                        | Mandatory | Audit logs          | Prevention | Enforced    |
+| Disallow changes to Amazon CloudWatch set up by AWS Control Tower                                          | Mandatory | Control Tower Setup | Prevention | Enforced    |
+| Disallow deletion of AWS Config Aggregation Authorizations created by AWS Control Tower                    | Mandatory | Control Tower Setup | Prevention | Enforced    |
+| Disallow changes to tags created by AWS Control Tower for AWS Config resources                             | Mandatory | Control Tower Setup | Prevention | Enforced    |
+| Disallow configuration changes to AWS Config                                                               | Mandatory | Audit logs          | Prevention | Enforced    |
+| Enable AWS Config in all available regions                                                                 | Mandatory | Audit logs          | Prevention | Enforced    |
+| Disallow changes to AWS Config Rules set up by AWS Control Tower                                           | Mandatory | Control Tower Setup | Prevention | Enforced    |
+| Disallow Changes to Encryption Configuration for AWS Control Tower Created S3 Buckets in Log Archive       | Mandatory | Audit logs          | Prevention | Enforced    |
+| Disallow changes to lifecycle configuration for AWS Control Tower created Amazon S3 buckets in log archive | Mandatory | Audit logs          | Prevention | Enforced    |
+| Disallow changes to logging configuration for AWS Control Tower created Amazon S3 buckets in log archive   | Mandatory | Audit logs          | Prevention | Enforced    |

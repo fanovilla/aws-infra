@@ -1,0 +1,10 @@
+repos:
+  - repo: https://github.com/gruntwork-io/pre-commit
+    rev: v0.1.12
+    hooks:
+      - id: terraform-fmt
+      #- id: terraform-validate ### commented-out as failing with missing region when validating module folders
+      - id: tflint
+      - id: shellcheck
+      - id: gofmt
+      # - id: golint ### commented out as deprecated

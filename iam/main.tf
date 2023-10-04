@@ -19,7 +19,7 @@ data "aws_iam_policy" "ReadOnlyAccess" {
 }
 
 resource "aws_iam_role" "AdhocReadOnlyRole" {
-  name                = "AdhocReadOnlyRole"
+  name = "AdhocReadOnlyRole"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -27,7 +27,7 @@ resource "aws_iam_role" "AdhocReadOnlyRole" {
         Action = "sts:AssumeRole"
         Effect = "Allow"
         Sid    = ""
-        Principal: { "AWS": data.aws_caller_identity.current.account_id }
+        Principal : { "AWS" : data.aws_caller_identity.current.account_id }
       },
     ]
   })
